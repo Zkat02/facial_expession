@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{%block title%} Calculation | {{block.super} {%endblock%}
+
+{% block content %}
+<div class="text-center">
+    <H1>Your calculations</H1>
+</div>
+<div class="mt-1 mb-2 text-center">
+    <button class="btn btn-primary profile-button" type="button" href="{% url 'analise_image'%}">Create new calculation</button>
+</div>
+
+{% for calculation in calculations %}
+<div class="col d-flex justify-content-center">
+    <div class="card mb-3" style="width: 48rem;">
+        <div class="card-header">
+            {{calculation.title}}
+        </div>
+        <div class="card-body">
+            <div class="container">
+                <p class="card-text">Image for calculation:</p>
+                <div class="text-center">
+                    <img src="{{calculation.calculation_image.url}}" alt="image" width="144" height="144">
+                </div>
+                <div class="row">
+                    <p class="card-text">Info: {{calculation.info}}</p>
+                    <p class="card-text">Result: here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

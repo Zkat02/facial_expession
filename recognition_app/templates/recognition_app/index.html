@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{%block title%} Home | {{block.super} {%endblock%}
+
+{% block content %}
+
+
+{% if request.user.is_authenticated %}
+<H1>Hello, {{user.username}}</H1>
+<br><h3>Start work <a href="{% url 'analise_image'%}">here</a></h3></br>
+{%else%}
+<H3>
+To get start, please register <a href="{%url 'registration'%}">here</a> or <a href="{%url 'login'%}">login</a> in acount.
+</H3>
+{% endif %}
+
+{% endblock %}

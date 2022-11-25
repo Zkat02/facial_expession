@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{%block title%} Analise image | {{block.super} {%endblock%}
+{% block content %}
+<div class="container rounded bg-white mt-5 mb-5">
+    <div class="row">
+        <div class="col-md-3 border-right">
+            <div class="text-center">
+                <img class="rounded-circle mt-5" width="200px" src="{{user.profile.photo.url}}">
+            </div>
+        </div>
+
+        <div class="col-md-5 border-right">
+            <div class="p-3 py-5">
+                <div class="text-center">
+                    <h2>Profile Settings</h2>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-md-6 font-weight-bold"><label class="labels"> <H4>Username: {{ user.username }}</H4></label>
+                    </div>
+
+                    <div class="row mt-6">
+                            <div><label class="labels"> Email ID: {{ user.email }}</label></div>
+                            <div><label class="labels"> Bio: {{user.profile.bio }}</label></div>
+                            <div><label class="labels"> Location: {{user.profile.location}}</label></div>
+                            <div><label class="labels"> Birth date: {{ user.profile.birth_date}}</label></div>
+                            <div><label class="labels"> Amount calculations on site: {{user.profile.amount_calculations }}</label></div>
+                            <div><label class="labels"> My calculations: <a href="{% url 'view_calculation'%}">click to see</a></label></div>
+                            <div class="mt-5 text-center">
+                            <button class="btn btn-primary profile-button" type="button" href="#">Change Profile</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

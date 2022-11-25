@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{%block title%} Registration | {{block.super}} {%endblock%}
+{% block content %}
+<H1>Registration</H1>
+<form action="{%url 'registration'%}" method="post">
+    {% csrf_token %}
+    {{form.non_field.errors}}
+    {{form.as_p}}
+    <button type="submit" class="btn btn-primary btn-block">to registrate me</button>
+</form>
+{% endblock %}

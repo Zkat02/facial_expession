@@ -1,0 +1,44 @@
+<!doctype html>
+
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> {%block title%} Recognition expression {%endblock%} </title>
+    <link href="{% static 'bootstrap/css/bootstrap.min.css'%}" rel="stylesheet">
+
+
+</head>
+<body>
+
+{%include 'inc/_nav.html' %}
+
+<div class="container mt-3">
+
+        {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'error' %}
+        <div class="alert alert-dismissible alert-danger">
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          <strong>Oh no! {{message}}</strong>
+        </div>
+        {% else%}
+        <div class="alert alert-dismissible alert-{{message.tags}}">
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          <strong>{{message}}</strong>
+        </div>
+        {% endif%}
+        {% endfor %}
+        {% endif%}
+
+        {% block content %}{% endblock %}
+
+</div>
+
+<script src="{% static 'bootstrap/js/bootstrap.min.js'%}"></script>
+<script src="{% static 'js/scripts.js'%}"></script>
+</body>
+
+</html>
