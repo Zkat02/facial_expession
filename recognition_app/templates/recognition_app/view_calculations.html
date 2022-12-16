@@ -1,35 +1,49 @@
 {% extends 'base.html' %}
 
-{%block title%} Calculation | {{block.super} {%endblock%}
+{%block title%} Calculation | {{block.super}} {%endblock%}
 
 {% block content %}
 <div class="text-center">
     <H1>Your calculations</H1>
 </div>
 <div class="mt-1 mb-2 text-center">
-    <button class="btn btn-primary profile-button" type="button" href="{% url 'analise_image'%}">Create new calculation</button>
+    <a href="{%url 'analise_image'%}">
+        <button class="btn btn-primary profile-button" type="button">Create new calculation</button>
+    </a>
 </div>
 
-{% for calculation in calculations %}
-<div class="col d-flex justify-content-center">
-    <div class="card mb-3" style="width: 48rem;">
-        <div class="card-header">
-            {{calculation.title}}
-        </div>
-        <div class="card-body">
-            <div class="container">
-                <p class="card-text">Image for calculation:</p>
+{% for user_calc in user_calculations %}
+
+<div class="container rounded bg-white mt-5 mb-5">
+    <div class="row">
+        <div class="col-md-1 border-right"></div>
+        <div class="col-md-4 border-right">
+            <div class="text-center">
                 <div class="text-center">
-                    <img src="{{calculation.calculation_image.url}}" alt="image" width="144" height="144">
+                    <h5>{{user_calc.calculation.calculation_name}}</h5>
+                    <img class="rounded mt-5" width="256px" height="256px"
+                         src="{{user_calc.calculation.calculation_image.url}}">
                 </div>
-                <div class="row">
-                    <p class="card-text">Info: {{calculation.info}}</p>
-                    <p class="card-text">Result: here</p>
+            </div>
+        </div>
+        <div class="col-md-6 border-right">
+            <div class="p-3 py-3">
+                <div class="text">
+                    <h3> Result: {{user_calc.calculation.result}}</h3>
+                    {% if user_calc.calculation.info %}
+                    <div class="col-md-6 font-weight-bold"><label class="labels"><h4> Info:
+                        {{user_calc.calculation.info}}</h4></label></div>
+                    {% endif %}
+                    <a class="btn btn-primary profile-button" type="button"
+                       href="{% url 'download_json' user_calc.calculation.pk %}">save json</a>
+                    <a class="btn btn-primary profile-button" type="button"
+                       href="{% url 'download_pdf' user_calc.calculation.pk %}">save pdf</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 {% endfor %}
 
 {% endblock %}

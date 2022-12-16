@@ -129,10 +129,75 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
+ADMINS = (
+    ('admin', 'zkatdjango@gmail.com'),
+)
+
 # EMAIL_HOST = 'smtp.ukr.net'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 465 #2525
 EMAIL_HOST_USER = 'zkatdjango@gmail.com'
-EMAIL_HOST_PASSWORD = 'nmvripaiknqsnykp' #'tkaZDjango'
+EMAIL_HOST_PASSWORD = 'nmvripaiknqsnykp' #'takZDjango'
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
+
+SERVER_EMAIL = 'zkatdjango@gmail.com'
+DEFAULT_FROM_EMAIL = 'zkatdjango@gmail.com'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'formatters': {
+        'rich': {"datefmt": "[%X]"},
+        'console': {
+            'format': '%(name)-12s %(levelname)-8s %(message)s'
+        },
+        'file': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+        }
+    },
+    'handlers': {
+        'null': {
+            'level': 'INFO',
+            'class': 'logging.NullHandler',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'rich.logging.RichHandler',
+            'formatter': 'console'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'formatter': 'file',
+            'filename': 'debug.log'
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['null'],
+            'propagate': True,
+            'level': 'INFO',
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        '': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'file']
+        }
+    }
+}

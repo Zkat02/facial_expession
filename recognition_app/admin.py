@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .models import Profile
+from .models import Profile, UserCalculation
 from .models import Calculation
 
 
@@ -12,8 +12,8 @@ admin.site.register(Profile, Profile_Admin)
 
 
 class Calculation_Admin(admin.ModelAdmin):
-    list_display = ('user','title','calculation_image','created_at')
-    search_fields = ('title','user')
+    list_display = ('calculation_name','calculation_image','result')
+    search_fields = ('calculation_name',)
 
     def get_photo(self, obj):
         if obj.calculation_image:
@@ -22,3 +22,9 @@ class Calculation_Admin(admin.ModelAdmin):
             return '-'
 
 admin.site.register(Calculation, Calculation_Admin)
+
+class UserCalculation_Admin(admin.ModelAdmin):
+    list_display = ('user','calculation')
+    search_fields = ('user',)
+
+admin.site.register(UserCalculation, UserCalculation_Admin)

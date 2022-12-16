@@ -4,11 +4,11 @@
 
 {% block content %}
 
-<form method="post">
+<form action="{%url 'update_profile'%}" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   {{ user_form.as_p }}
   {{ profile_form.as_p }}
-  <button type="submit">Сохранить изменения</button>
+  <button type="submit" class="btn btn-primary btn-block">Сохранить изменения</button>
 </form>
 
 {% endblock %}

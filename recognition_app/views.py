@@ -1,118 +1,115 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core import serializers
 from django.db import transaction
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.contrib.auth.models import User
-from django.urls import reverse_lazy
-from django.views.generic import DetailView, CreateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import UserRegisterForm, UserLoginForm, ContactForm, CalculationForm  # , UserForm, ProfileForm
-from .models import User, Profile, Calculation
+from reportlab.lib.utils import ImageReader
+from .forms import UserRegisterForm, UserLoginForm, ContactForm, CalculationForm, ProfileForm
+from .models import Calculation, UserCalculation, Profile
+import logging
+from .recognition_script import recognise
+import io
+from django.http import FileResponse, HttpResponse
+from reportlab.pdfgen import canvas
+
+logger = logging.getLogger(__name__)
+
+
+def download_pdf(request, pk):  # , calk_pk
+    buffer = io.BytesIO()  # Create a file-like buffer to receive PDF data.
+    p = canvas.Canvas(buffer)
+
+    calc = Calculation.objects.get(pk=pk)
+    logger.debug(f"create PDF of obj: {calc}.")
+
+    img_path = ImageReader(calc.calculation_image)
+    strs_to_draw = [f"Result of processing by neural network: emotion on image {calc.result}",
+                    f"Additionl info: {calc.info}",
+                    "This file and the prediction was made using a neural network by Recognition expression application"]
+
+    # Draw on the PDF
+    p.drawImage(img_path, x=100, y=600, width=200, height=200, mask=None)
+    for i, str in enumerate(strs_to_draw):
+        p.drawString(50, 550 - i * 15, str)
+
+    # Close the PDF object
+    p.showPage()
+    p.save()
+
+    # FileResponse sets the Content-Disposition header
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename='recognition_result.pdf')
+
+
+def download_json(request, pk):
+    calc = Calculation.objects.filter(pk=pk)
+    logger.debug(f"create PDF of obj: {calc}.")
+    json_str = serializers.serialize('json', calc)
+    response = HttpResponse(json_str, content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename=recognition_result.json'
+    return response
 
 
 def index(request):
+    logger.debug("index")
     return render(request, 'recognition_app/index.html')
 
 
-# def analise_image(request):
-#     return render(request, 'recognition_app/analise_image.html')
+def create_caluculation(request):
+    if request.method == 'POST':
+        form = CalculationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = request.user
+            calc = form.instance
+            calc.result = recognise(calc.calculation_image)
+            calc.save()
+            logger.debug(f"calculaton result: {calc.result}")
+            uc = UserCalculation.objects.create(user=user, calculation=calc)
+            uc.save()
 
-# def analise_image(request):
-#     if request.method == 'POST':
-#         form = AnaliseImageForm(request.POST)
-#         print(form.cleaned_data)
-#         if form.is_valid():
-#             print("111111111111111111111")
-#             print(**form.cleaned_data)
-#             calculation = form.save()
-#             messages.success(request, 'data received successfully!')
-#             return redirect('calculation')
-#         else:
-#             print("333333333333333333")
-#             messages.error(request, 'error!')
-#     else:
-#         print("222222222222222222")
-#         form = AnaliseImageForm()
-#     return render(request, 'recognition_app/image_form.html', {'form': form})
-
-# @login_required
-# def CreateCaluculation(request):
-#     if request.method == 'POST':
-#         form = CalculationForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, 'Education Added Successfully')
-#             return redirect('home')
-#     else:
-#         form = CalculationForm()
-#     context = { 'form': form, }
-#     return render(request, 'recognition_app/image_form.html', context)
-
-# class CreateCaluculation(LoginRequiredMixin,CreateView):
-#     def post(self):
-#         user = self.request.user
-#         form_class = CalculationForm
-#         template_name = 'recognition_app/image_form.html'
-#         success_url = reverse_lazy('home')
-
-@login_required
-def CreateCaluculation(request):
-    form = CalculationForm(request.user, request.POST or None)
-    if form.is_valid():
-        calc = form.save(commit=False)
-        calc.user = request.user
-        calc.save()
-        return redirect('home')
-
+            return (redirect('view_calculations'))
+    else:
+        form = CalculationForm()
     return render(request, 'recognition_app/image_form.html', {'form': form})
 
 
-# class CreateCaluculation(LoginRequiredMixin,CreateView):
-#     def post(self):
-#         user = self.request.user
-#         model = Calculation
-#         form_class = CalculationForm
-#         template_name = 'recognition_app/image_form.html'
-#         if form_class.is_valid():
-#             form_class.save()
-#
-#     def form_valid(self, form):
-#         form.instance.created_by = self.request.user
-#         return super().form_valid(form)
-
-
-def view_calculation(request):
+def view_calculations(request):
     user = request.user
-    user_calc = [Calculation.objects.get(user_id=user)]
-    print(user_calc)
-    return render(request, 'recognition_app/view_calculations.html', {'user': user, 'calculations': user_calc})
+    user_calc = []
+    if User.objects.filter(username=user.username).exists():
+        user_calc = UserCalculation.objects.filter(user=user)
+        profile = Profile.objects.filter(user=user).update(amount_calculations=len(user_calc))
+    return render(request, 'recognition_app/view_calculations.html', {'user_calculations': user_calc})
 
 
 def view_profile(request):
     return render(request, 'recognition_app/profile.html', {'user': request.user})
 
-# @login_required
-# @transaction.atomic
-# def update_profile(request):
-#     if request.method == 'POST':
-#         user_form = UserForm(request.POST, instance=request.user)
-#         profile_form = ProfileForm(request.POST, instance=request.user.profile)
-#         if user_form.is_valid() and profile_form.is_valid():
-#             user_form.save()
-#             profile_form.save()
-#             messages.success(request, 'Ваш профиль был успешно обновлен!')
-#             return redirect('recognition_app/profile.html')
-#         else:
-#             messages.error(request, 'Пожалуйста, исправьте ошибки.')
-#     else:
-#         user_form = UserForm(instance=request.user)
-#         profile_form = ProfileForm(instance=request.user.profile)
-#     return render(request, 'recognition_app/profile.html', {
-#         'user_form': user_form,
-#         'profile_form': profile_form
-#     })
+
+@login_required
+@transaction.atomic
+def update_profile(request):
+    if request.method == 'POST':
+        # user_form = UserForm(request.POST, instance=request.user)
+        profile_form = ProfileForm(request.POST, request.FILES, instance=request.user.profile)
+        if profile_form.is_valid():  # \
+            # and user_form.is_valid()
+            # user_form.save()
+            profile_form.save()
+            messages.success(request, 'Ваш профиль был успешно обновлен!')
+            return redirect('view_profile')
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки.')
+    else:
+        # user_form = UserForm(instance=request.user)
+        profile_form = ProfileForm(instance=request.user.profile)
+    return render(request, 'recognition_app/update_profile.html', {
+        # 'user_form': user_form,
+        'profile_form': profile_form
+    })
 
 
 def contact(request):

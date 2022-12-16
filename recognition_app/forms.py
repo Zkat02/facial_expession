@@ -3,36 +3,37 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 # from .models import Profile,User
-from .models import Calculation
+from .models import Calculation, Profile
+from django.forms import TextInput
+import logging
 
-
-# class AnaliseImageForm(forms.Form):
-#     photo = forms.ImageField()
-#     info = forms.CharField(label="Additional Info", required=False, widget=forms.Textarea(attrs={"class": "form-control", "rows": 5}))
-#
-#     def clean_photo(self):
-#         photo = self.cleaned_data['photo']
-#         if photo.size != (48,48):
-#              photo = photo.resize((48, 48))
-#         return photo
+logger = logging.getLogger(__name__)
 
 
 class CalculationForm(forms.ModelForm):
     class Meta:
         model = Calculation
-        fields = ['title', 'calculation_image', 'info']
-        exclude = ('user',)
-    def __init__(self, user, *args, **kwargs):
-        self.user = user
-        super(CalculationForm, self).__init__(*args, **kwargs)
+        fields = ['calculation_name', 'calculation_image', 'info']
+        widgets = {
+            "calculation_name": forms.TextInput(attrs={"class": "form-control"}),
+            "info": forms.Textarea(attrs={"class": "form-control", 'cols': 10, "rows": 3}),
+            "calculation_image": forms.FileInput(attrs={"class": "form-control"})
+        }
+        labels = {
+            'calculation_name': 'Name of calculation'
+        }
 
-
-#
-# class CalculationForm(forms.ModelForm):
-#     class Meta:
-#         model = Calculation
-#         fields = ['title','calculation_image', 'info'] #'user',
-#         # widgets = {'user': forms.HiddenInput()}
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['bio', 'location', 'birth_date','photo','amount_calculations']
+        widgets = {
+            "bio": forms.Textarea(attrs={"class": "form-control"}),
+            "location": forms.TextInput(attrs={"class": "form-control", 'cols': 10, "rows": 3}),
+            "birth_date": forms. DateInput(attrs={"class": "form-control"}),
+            'photo':  forms.FileInput(attrs={"class": "form-control"}),
+            'amount_calculations': forms.TextInput(attrs={"readonly": "readonly","class": "form-control"}),
+        }
 
 
 class ContactForm(forms.Form):
@@ -67,5 +68,3 @@ class UserRegisterForm(UserCreationForm):
     class Meta:
         model = User
         fields = {'username', 'email', 'password1', 'password2'}
-
-
